@@ -1,10 +1,14 @@
 using FluentValidation;
 using LojaDeGames.Data;
 using LojaDeGames.Model;
+using LojaDeGames.Security;
 using LojaDeGames.Service;
 using LojaDeGames.Service.Implements;
 using LojaDeGames.Validator;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace LojaDeGames
 {
@@ -28,10 +32,34 @@ namespace LojaDeGames
             //Registrar validação das entidades
             builder.Services.AddTransient<IValidator<Produto>, ProdutoValidator>();
             builder.Services.AddTransient<IValidator<Categoria>, CategoriaValidator>();
+            builder.Services.AddTransient<IValidator<User>, UserValidator>();
+            builder.Services.AddTransient<IAuthService, AuthService>();
 
             //Registrar as classes de serviço
             builder.Services.AddScoped<IProdutoService, ProdutoService>();
             builder.Services.AddScoped<ICategoriaService, CategoriaService>();
+            builder.Services.AddScoped<IUserService, UserService>();
+
+            // Adicionar a Validação do Token JWT
+
+            builder.Services.AddAuthentication(x =>
+            {
+                x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(o =>
+            {
+                var Key = Encoding.UTF8.GetBytes(Settings.Secret);
+                o.SaveToken = true;
+                o.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Key)
+                };
+            });
+
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
@@ -66,8 +94,9 @@ namespace LojaDeGames
             }
 
             app.UseCors("MyPolicy");
+            app.UseAuthentication();
             app.UseAuthorization();
-
+            
             app.MapControllers();
 
             app.Run();

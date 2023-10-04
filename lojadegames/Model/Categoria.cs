@@ -5,6 +5,7 @@ namespace LojaDeGames.Model
 {
     public class Categoria
     {
+
         [Key] // Primary Key (Id)
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)] // IDENTITY(1, 1)
         public long Id { get; set; }

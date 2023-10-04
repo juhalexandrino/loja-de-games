@@ -8,7 +8,7 @@ namespace LojaDeGames.Validator
         public CategoriaValidator() {
             RuleFor(p => p.Tipo)
                     .NotEmpty()
-                    .MinimumLength(10)
+                    .MinimumLength(2)    
                     .MaximumLength(1000);
         }
         
